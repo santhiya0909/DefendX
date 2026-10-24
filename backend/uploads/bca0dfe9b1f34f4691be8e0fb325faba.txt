@@ -1,0 +1,9 @@
+TRADING :
+Candle- high/low , body, wick/shadow
+candle means buyers and sellers fight if the  high open prize la close achina athu bullish candle ,  ithuvey kela open prize la close achina athu bearish caldel 
+green candle la buyers are more compare to sellers 
+red candle la sellers are more compare to buyers 
+Topic 1 : support or demand zone 
+demand na enna :  ipo oru share oda prize vanthu 100 na anga irunthu 110,120 ku poguthuna 100 ku apo demand iruku nu arutham 
+Resistance zone or supply zone:
+has more suppler 

@@ -1,0 +1,70 @@
+version: "3.8"
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: defendx-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-defendx_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-defendx_secure_pass_2026}
+      POSTGRES_DB: ${POSTGRES_DB:-defendx_db}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U defendx_user -d defendx_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: defendx-backend
+    restart: always
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      ENVIRONMENT: production
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-defendx_user}:${POSTGRES_PASSWORD:-defendx_secure_pass_2026}@db:5432/${POSTGRES_DB:-defendx_db}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-defendx_production_secret_key_change_me_2026}
+      DEV_AUTH_ENABLED: ${DEV_AUTH_ENABLED:-false}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      LLM_PROVIDER: ${LLM_PROVIDER:-mock}
+      LLM_API_KEY: ${LLM_API_KEY:-}
+      LLM_MODEL_NAME: ${LLM_MODEL_NAME:-defendx-evaluator-v1}
+      CLAMAV_HOST: clamav
+      CLAMAV_PORT: 3310
+    ports:
+      - "8000:8000"
+    volumes:
+      - defendx_uploads:/app/uploads
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: defendx-frontend
+    restart: always
+    depends_on:
+      - backend
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:8000/api/v1
+    ports:
+      - "3000:3000"
+
+  clamav:
+    image: clamav/clamav:latest
+    container_name: defendx-clamav
+    restart: unless-stopped
+    ports:
+      - "3310:3310"
+
+volumes:
+  postgres_data:
+  defendx_uploads:
